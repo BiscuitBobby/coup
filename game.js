@@ -1498,7 +1498,7 @@ function handleOnlineGameStart(msg){
   hideAllScreens();
   setupOnlineGame(n,onlinePlayers);
   started=true;
-  document.getElementById('legend').innerHTML=`Online — ${onlinePlayers.map(p=>p.name).join(', ')} · P2P · Esc for rules`;
+  document.getElementById('legend').innerHTML=`Online — ${onlinePlayers.map(p=>p.name).join(', ')} · P2P`;
 }
 
 function handleOnlineGameOver(msg){
@@ -1724,7 +1724,7 @@ async function doStartOnlineGame(){
   wsBroadcast({type:'game_start',n,players:onlinePlayers});
   hideAllScreens();
   setupOnlineGame(n,onlinePlayers);
-  document.getElementById('legend').innerHTML=`Online — ${onlinePlayers.map(p=>p.name).join(', ')} · P2P · Esc for rules`;
+  document.getElementById('legend').innerHTML=`Online — ${onlinePlayers.map(p=>p.name).join(', ')} · P2P`;
   await sleep(400);
   gameLoop();
 }
@@ -1751,7 +1751,7 @@ async function startPracticeMatch(){
   logBody.innerHTML='';
   onlineMode=false;isHost=false;myPlayerId=0;
   setupGame(chosenCount);
-  document.getElementById('legend').innerHTML='Hover your cards to inspect · 3× of each role exist · Esc for rules';
+  document.getElementById('legend').innerHTML='Hover your cards to inspect · 3× of each role exist';
   await sleep(700);
   gameLoop();
 }
@@ -1837,6 +1837,7 @@ async function boot(){
   const rulesOverlay=document.getElementById('rulesOverlay');
   const toggleRules=()=>rulesOverlay.classList.toggle('hidden');
   document.getElementById('rulesClose').onclick=()=>rulesOverlay.classList.add('hidden');
+  document.getElementById('rulesBtn').onclick=toggleRules;
   addEventListener('keydown',e=>{
     if(e.key==='Escape'){
       const zoom=document.getElementById('cardZoom');

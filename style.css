@@ -196,6 +196,24 @@
   .legend{position:fixed;bottom:16px;left:18px;z-index:9;font-family:'Cormorant Garamond',serif;
     font-size:13px;color:#6e5f7e;font-style:italic;pointer-events:none;}
 
+  /* ----- Rules Button ----- */
+  .rules-btn{
+    position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:25;
+    background:linear-gradient(165deg,rgba(30,18,46,.95),rgba(12,8,20,.98));
+    border:1px solid var(--gold-deep);border-right:none;
+    border-radius:6px 0 0 6px;padding:16px 8px 16px 10px;cursor:pointer;
+    font-family:'Cinzel',serif;font-weight:700;font-size:14px;letter-spacing:2px;
+    color:var(--gold-bright);text-transform:uppercase;
+    writing-mode:vertical-rl;text-orientation:mixed;
+    box-shadow:-4px 0 12px rgba(0,0,0,.5);transition:all .2s;
+  }
+  .rules-btn:hover{
+    border-color:var(--gold-bright);
+    background:linear-gradient(165deg,rgba(40,24,60,.98),rgba(16,10,24,1));
+    color:#fff;
+    box-shadow:-6px 0 18px rgba(212,175,55,.2);
+  }
+
   /* ----- Mode select ----- */
   .mode-row{display:flex;gap:24px;margin-bottom:10px;}
   .mode-btn{
