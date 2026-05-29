@@ -25,7 +25,7 @@ let ws = null, lobbyCode = null, onlinePlayers = [];
 const pendingRemote = {};   // globalPlayerId -> resolve fn
 
 function localIdx(gid){ const n=players.length||1; return (gid-myPlayerId+n)%n; }
-function globalId(li){ const n=players.length||1; return (li+myPlayerId)%n; }
+function globalId(li,total){ const n=total||players.length||1; return (li+myPlayerId)%n; }
 function playerByGid(gid){ return players.find(p=>p.id===gid); }
 
 function wsSend(msg){ if(ws&&ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify(msg)); }
@@ -237,12 +237,13 @@ function getCardFace(charName){
   g.addColorStop(0,t.light);g.addColorStop(0.18,t.base);g.addColorStop(1,t.deep);
   x.fillStyle=g;x.fillRect(0,0,512,720);
   roundRect(x,40,40,432,640,18);
-  const pg=x.createLinearGradient(0,40,0,680);pg.addColorStop(0,'#f3e8c8');pg.addColorStop(1,'#d9c79a');
+  const pg=x.createLinearGradient(0,40,0,680);pg.addColorStop(0,'#fff7dd');pg.addColorStop(1,'#ecd9a8');
   x.fillStyle=pg;x.fill();
-  x.strokeStyle=t.base;x.lineWidth=6;x.stroke();
-  roundRect(x,54,54,404,612,12);x.strokeStyle='rgba(0,0,0,.25)';x.lineWidth=2;x.stroke();
-  x.fillStyle=t.deep;x.textAlign='center';x.font='900 50px Cinzel, serif';
-  x.fillText(t.title,256,120);
+  x.strokeStyle=t.base;x.lineWidth=8;x.stroke();
+  roundRect(x,54,54,404,612,12);x.strokeStyle=t.base;x.lineWidth=3;x.stroke();
+  x.textAlign='center';x.font='900 54px Cinzel, serif';
+  x.lineWidth=5;x.strokeStyle=t.deep;x.strokeText(t.title,256,122);
+  x.fillStyle=t.base;x.fillText(t.title,256,122);
   x.strokeStyle=t.base;x.lineWidth=3;x.beginPath();x.moveTo(120,140);x.lineTo(392,140);x.stroke();
   x.save();x.translate(256,330);drawCharIcon(x,t.icon,t.deep,t.base);x.restore();
   roundRect(x,74,520,364,96,10);x.fillStyle=t.base;x.fill();
@@ -257,7 +258,15 @@ function getCardFace(charName){
 
 function makeCardMesh(charName){
   const edgeMat=new THREE.MeshStandardMaterial({color:0x1a1020,roughness:0.6,metalness:0.3});
-  const frontMat=new THREE.MeshStandardMaterial({map:getCardFace(charName),roughness:0.55,metalness:0.05});
+  const face=getCardFace(charName);
+  const frontMat=new THREE.MeshStandardMaterial({
+    map:face,
+    roughness:0.38,
+    metalness:0.0,
+    emissive:0xffffff,
+    emissiveMap:face,
+    emissiveIntensity:0.42,
+  });
   const backMat=new THREE.MeshStandardMaterial({map:getCardBack(),roughness:0.5,metalness:0.15});
   const mats=[edgeMat,edgeMat,edgeMat,edgeMat,frontMat,backMat];
   const m=new THREE.Mesh(new THREE.BoxGeometry(CARD_W,CARD_H,CARD_D),mats);
@@ -266,7 +275,9 @@ function makeCardMesh(charName){
 }
 function setCardFace(mesh,charName){
   mesh.userData.char=charName;
-  mesh.userData.frontMat.map=getCardFace(charName);
+  const face=getCardFace(charName);
+  mesh.userData.frontMat.map=face;
+  mesh.userData.frontMat.emissiveMap=face;
   mesh.userData.frontMat.needsUpdate=true;
 }
 
@@ -381,7 +392,7 @@ function setupGame(n){
       p.cards.push(card);
       mesh.userData.cardRef=card;mesh.userData.owner=p;
     }
-    if(isHuman){p.cards.forEach(c=>{c.mesh.rotation.x=FACE_UP;});}
+    if(isHuman){applyLocalCardPose(p);}
 
     p.coinGroup=new THREE.Group();
     p.coinGroup.position.set(isHuman ? 1.8 : -1.8, 0, 0);
@@ -411,7 +422,7 @@ function setupOnlineGame(n, playerInfos){
   const startCoins=(n===2)?1:2;
 
   for(let li=0;li<n;li++){
-    const gi=globalId(li);
+    const gi=globalId(li,n);
     const info=playerInfos.find(p=>p.id===gi)||{name:`Player ${gi+1}`};
     const seat=seats[li];
     const isLocal=(gi===myPlayerId);
@@ -436,7 +447,7 @@ function setupOnlineGame(n, playerInfos){
       p.cards.push(card);
       mesh.userData.cardRef=card;mesh.userData.owner=p;
     }
-    if(isLocal){p.cards.forEach(c=>{c.mesh.rotation.x=FACE_UP;});}
+    if(isLocal){applyLocalCardPose(p);}
 
     p.coinGroup=new THREE.Group();
     p.coinGroup.position.set(isLocal?1.8:-1.8,0,0);
@@ -545,13 +556,29 @@ function clearActions(){actionbar.innerHTML='';}
 /* ============================================================
    CARD ANIMATIONS
    ============================================================ */
-function flipCard(card,faceUp){
-  return new Promise(res=>{
-    gsap.to(card.mesh.rotation,{x:faceUp?FACE_UP:FACE_DOWN,duration:0.62,ease:'power2.inOut',onComplete:res});
-    gsap.to(card.mesh.position,{y:CARD_D/2+0.55,duration:0.31,yoyo:true,repeat:1,ease:'power2.out'});
+const LOCAL_CARD_SCALE=1.32;
+const LOCAL_CARD_OFFSET_X=0.95;
+const LOCAL_CARD_REST_Y=CARD_D/2+0.32;
+function applyLocalCardPose(p){
+  p.cards.forEach((c,idx)=>{
+    c.mesh.rotation.x=FACE_UP;
+    c.mesh.scale.set(LOCAL_CARD_SCALE,LOCAL_CARD_SCALE,LOCAL_CARD_SCALE);
+    c.mesh.position.x=idx===0?-LOCAL_CARD_OFFSET_X:LOCAL_CARD_OFFSET_X;
+    c.mesh.position.y=LOCAL_CARD_REST_Y;
+    c.mesh.userData.restY=LOCAL_CARD_REST_Y;
   });
 }
-function liftCard(mesh,up){gsap.to(mesh.position,{y:up?CARD_D/2+0.35:CARD_D/2,duration:0.3,ease:'power2.out'});}
+function flipCard(card,faceUp){
+  return new Promise(res=>{
+    const restY=card.mesh.userData.restY??CARD_D/2;
+    gsap.to(card.mesh.rotation,{x:faceUp?FACE_UP:FACE_DOWN,duration:0.62,ease:'power2.inOut',onComplete:res});
+    gsap.to(card.mesh.position,{y:restY+0.55,duration:0.31,yoyo:true,repeat:1,ease:'power2.out'});
+  });
+}
+function liftCard(mesh,up){
+  const restY=mesh.userData.restY??CARD_D/2;
+  gsap.to(mesh.position,{y:up?restY+0.35:restY,duration:0.3,ease:'power2.out'});
+}
 async function revealPermanent(card){
   await flipCard(card,true);
   card.revealed=true;
@@ -1073,7 +1100,33 @@ function onPointerMove(e){
   pointer.x=(e.clientX/innerWidth)*2-1;
   pointer.y=-(e.clientY/innerHeight)*2+1;
 }
-function onCanvasClick(){/* reserved */}
+function onCanvasClick(){
+  if(!players.length) return;
+  raycaster.setFromCamera(pointer,camera);
+  const meshes=[];players.forEach(p=>p.cards.forEach(c=>meshes.push(c.mesh)));
+  const hits=raycaster.intersectObjects(meshes,false);
+  if(!hits.length) return;
+  const hit=hits[0].object;
+  const ref=hit.userData.cardRef;
+  const owner=hit.userData.owner;
+  if(owner&&owner.isLocal&&ref&&!ref.revealed&&ref.char){
+    showCardZoom(ref.char);
+  }
+}
+
+function showCardZoom(charName){
+  const overlay=document.getElementById('cardZoom');
+  if(!overlay) return;
+  const canvas=overlay.querySelector('.zoom-card');
+  const src=getCardFace(charName).image;
+  canvas.width=src.width;canvas.height=src.height;
+  canvas.getContext('2d').drawImage(src,0,0);
+  overlay.classList.remove('hidden');
+}
+function hideCardZoom(){
+  const overlay=document.getElementById('cardZoom');
+  if(overlay) overlay.classList.add('hidden');
+}
 
 function updateHover(){
   if(!players.length)return;
@@ -1673,8 +1726,15 @@ async function boot(){
   const toggleRules=()=>rulesOverlay.classList.toggle('hidden');
   document.getElementById('rulesClose').onclick=()=>rulesOverlay.classList.add('hidden');
   addEventListener('keydown',e=>{
-    if(e.key==='Escape') toggleRules();
+    if(e.key==='Escape'){
+      const zoom=document.getElementById('cardZoom');
+      if(zoom&&!zoom.classList.contains('hidden')){ hideCardZoom(); return; }
+      toggleRules();
+    }
   });
+
+  // Card zoom overlay — click anywhere to close
+  document.getElementById('cardZoom').addEventListener('click',hideCardZoom);
 
   // End screen
   document.getElementById('againBtn').onclick=()=>{
