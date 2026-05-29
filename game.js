@@ -21,18 +21,97 @@ let tableGroup;
 
 /* ---------- Online mode state ---------- */
 let onlineMode = false, isHost = false, myPlayerId = 0;
-let ws = null, lobbyCode = null, onlinePlayers = [];
+let lobbyCode = null, onlinePlayers = [];
 const pendingRemote = {};   // globalPlayerId -> resolve fn
+
+/* ---------- PeerJS P2P state ---------- */
+const HOST_ID = 0;
+let myPeer = null;
+let peerConnections = {}; // gid -> DataConnection
 
 function localIdx(gid){ const n=players.length||1; return (gid-myPlayerId+n)%n; }
 function globalId(li,total){ const n=total||players.length||1; return (li+myPlayerId)%n; }
 function playerByGid(gid){ return players.find(p=>p.id===gid); }
 
-function wsSend(msg){ if(ws&&ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify(msg)); }
-function wsSendTo(gid,msg){ wsSend({...msg,to:gid}); }
-function wsBroadcast(msg){ wsSend(msg); }
+function dcOpen(gid){
+  const conn = peerConnections[gid];
+  return !!(conn && conn.open);
+}
+
+function dcSend(gid, msg){
+  const conn = peerConnections[gid];
+  if(conn && conn.open){
+    conn.send(JSON.stringify({...msg, from: myPlayerId}));
+    return true;
+  }
+  return false;
+}
+
+// Non-host: send to host. Host: degenerate (no target) — broadcasts via WS.
+function wsSend(msg){
+  if(!isHost){
+    dcSend(HOST_ID, msg);
+    return;
+  }
+  wsBroadcast(msg);
+}
+
+// Host: send to one peer. Non-host: route via host.
+function wsSendTo(gid, msg){
+  if(isHost){
+    dcSend(gid, {...msg, to: gid});
+  } else {
+    dcSend(HOST_ID, {...msg, to: gid});
+  }
+}
+
+// Host fanout.
+function wsBroadcast(msg){
+  if(isHost){
+    const peers = onlinePlayers.filter(p=>p.id!==myPlayerId);
+    for(const p of peers){
+      dcSend(p.id, msg);
+    }
+  }
+}
+
 function waitRemote(gid){ return new Promise(r=>{ pendingRemote[gid]=r; }); }
 function resolveRemote(gid,value){ if(pendingRemote[gid]){ pendingRemote[gid](value); delete pendingRemote[gid]; } }
+
+/* ---------- PeerJS connection management ---------- */
+function rtcReset(){
+  Object.values(peerConnections).forEach(conn => { try { conn.close(); } catch(e){} });
+  if (myPeer) { try { myPeer.destroy(); } catch(e){} }
+  peerConnections = {};
+  myPeer = null;
+}
+
+function attachConnection(gid, conn) {
+  peerConnections[gid] = conn;
+  const onOpen = () => {
+    if (isHost && !started) {
+      updateLobbyPlayerList();
+    }
+  };
+  if (conn.open) onOpen();
+  else conn.on('open', onOpen);
+
+  conn.on('data', (data) => {
+    try{ handleWsMessage(JSON.parse(data)); } catch(err){ console.warn('bad dc msg',err); }
+  });
+  conn.on('close', () => {
+    delete peerConnections[gid];
+    if (isHost) {
+      const idx = onlinePlayers.findIndex(p=>p.id===gid);
+      if(idx !== -1) {
+        onlinePlayers.splice(idx, 1);
+        wsBroadcast({type: 'player_left', playerId: gid, players: onlinePlayers});
+        if(!started) updateLobbyPlayerList();
+      }
+    }
+  });
+  conn.on('error', err => console.warn('peer connection error', err));
+}
 
 function initScene(){
   scene = new THREE.Scene();
@@ -610,6 +689,7 @@ async function gameLoop(){
     const p=players[turnIndex];
     if(p.alive){
       refreshPlates();
+      if(onlineMode&&isHost) broadcastState();
       focusSeat(p);
       await sleep(p.isLocal?250:700);
       await playTurn(p);
@@ -642,6 +722,7 @@ async function playTurn(p){
 
 async function resolveAction(actor,action){
   const t=action.target;
+  if(onlineMode&&isHost) broadcastState();
   if(action.type==='income'){
     actor.coins+=1;updateCoins(actor);pulseCoins(actor);
     log(`${nameTag(actor)} takes <b>Income</b> — 1 coin.`);
@@ -758,11 +839,13 @@ async function resolveChallenge(claimant,char,challenger){
     await banner('TRUTH','col-truth',`${claimant.name} held the ${char}`,1200);
     await loseInfluence(challenger,`the failed challenge`);
     await replaceCard(claimant,card);
+    if(onlineMode&&isHost) broadcastState();
     return true;
   }else{
     log(`${nameTag(claimant)} has <span class="bluff">no ${char}</span> — caught bluffing!`,'bluff');
     await banner('BLUFF!','col-bluff',`${claimant.name} was lying`,1200);
     await loseInfluence(claimant,`the exposed bluff`);
+    if(onlineMode&&isHost) broadcastState();
     return false;
   }
 }
@@ -823,11 +906,13 @@ async function resolveBlock(blocker,claim,actor,action){
     await banner('TRUTH','col-truth',`${blocker.name} held the ${claim}`,1100);
     await loseInfluence(challenger,'the failed challenge');
     await replaceCard(blocker,card);
+    if(onlineMode&&isHost) broadcastState();
     return true;
   }else{
     log(`${nameTag(blocker)} was <span class="bluff">bluffing</span> the ${claim}!`,'bluff');
     await banner('BLUFF!','col-bluff',`${blocker.name} had no ${claim}`,1100);
     await loseInfluence(blocker,'the exposed block');
+    if(onlineMode&&isHost) broadcastState();
     return false;
   }
 }
@@ -1251,6 +1336,7 @@ function applyState(stateMsg){
   // Map global turnIndex to local display index
   turnIndex=(stateMsg.turnIndex-myPlayerId+players.length)%players.length;
   refreshPlates();
+  if(started && players[turnIndex]) focusSeat(players[turnIndex]);
 }
 
 /* ============================================================
@@ -1369,6 +1455,12 @@ function handleWsMessage(msg){
       onlinePlayers=msg.players;
       updateLobbyPlayerList();
     }
+    if(msg.type==='rename'){
+      const p = onlinePlayers.find(p=>p.id===msg.from);
+      if(p) p.name = msg.name;
+      wsBroadcast({type: 'player_joined', players: onlinePlayers});
+      if (!started) updateLobbyPlayerList();
+    }
   }else{
     switch(msg.type){
       case 'state':        applyState(msg); break;
@@ -1406,7 +1498,7 @@ function handleOnlineGameStart(msg){
   hideAllScreens();
   setupOnlineGame(n,onlinePlayers);
   started=true;
-  document.getElementById('legend').innerHTML=`Online — ${onlinePlayers.map(p=>p.name).join(', ')} · Esc for rules`;
+  document.getElementById('legend').innerHTML=`Online — ${onlinePlayers.map(p=>p.name).join(', ')} · P2P · Esc for rules`;
 }
 
 function handleOnlineGameOver(msg){
@@ -1416,17 +1508,8 @@ function handleOnlineGameOver(msg){
 }
 
 /* ============================================================
-   ONLINE MODE — WEBSOCKET CONNECTION
+   ONLINE MODE — PEER CONNECTION
    ============================================================ */
-function connectWs(code,pid){
-  const proto=location.protocol==='https:'?'wss:':'ws:';
-  ws=new WebSocket(`${proto}//${location.host}/ws/${code}/${pid}`);
-  ws.onmessage=e=>handleWsMessage(JSON.parse(e.data));
-  ws.onclose=()=>{
-    if(started) log('Connection lost.','sys');
-  };
-  ws.onerror=()=>{ showOnlineError('Connection error. Is the server running?'); };
-}
 
 /* ============================================================
    LOBBY UI
@@ -1451,20 +1534,36 @@ async function doCreateLobby(){
   const name=document.getElementById('createNameInput').value.trim()||'Player 1';
   setError('createError','');
   try{
-    const resp=await fetch('/lobby/create',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name})
+    lobbyCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+    myPlayerId = 0;
+    isHost = true;
+    onlinePlayers = [{id:0, name}];
+    
+    myPeer = new Peer('coup-lobby-' + lobbyCode);
+    myPeer.on('open', (id) => {
+      showLobbyScreen(lobbyCode);
     });
-    const data=await resp.json();
-    lobbyCode=data.code;
-    myPlayerId=data.playerId;
-    isHost=true;
-    onlinePlayers=[{id:0,name}];
-    connectWs(lobbyCode,myPlayerId);
-    showLobbyScreen(lobbyCode);
+    myPeer.on('connection', (conn) => {
+      let isInit = true;
+      conn.on('data', (data) => {
+        if (!isInit) return;
+        const msg = JSON.parse(data);
+        if (msg.type === 'join') {
+          isInit = false;
+          const newId = onlinePlayers.length;
+          onlinePlayers.push({id: newId, name: msg.name});
+          attachConnection(newId, conn);
+          conn.send(JSON.stringify({type: 'player_joined', players: onlinePlayers, pid: newId}));
+          wsBroadcast({type: 'player_joined', players: onlinePlayers});
+          if (!started) updateLobbyPlayerList();
+        }
+      });
+    });
+    myPeer.on('error', (err) => {
+      setError('createError', 'Could not create lobby.');
+    });
   }catch(e){
-    setError('createError','Could not reach server.');
+    setError('createError','Peer connection failed.');
   }
 }
 
@@ -1474,21 +1573,35 @@ async function doJoinLobby(){
   setError('joinError','');
   if(!code||code.length!==4){setError('joinError','Enter a 4-letter lobby code.');return;}
   try{
-    const resp=await fetch(`/lobby/join/${code}`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name})
+    lobbyCode = code;
+    isHost = false;
+    myPeer = new Peer();
+    myPeer.on('open', (id) => {
+      const conn = myPeer.connect('coup-lobby-' + lobbyCode);
+      conn.on('open', () => {
+        conn.send(JSON.stringify({type: 'join', name}));
+      });
+      let isInit = true;
+      conn.on('data', (data) => {
+        if (!isInit) return;
+        const msg = JSON.parse(data);
+        if (msg.type === 'player_joined' && msg.pid !== undefined) {
+          isInit = false;
+          myPlayerId = msg.pid;
+          onlinePlayers = msg.players;
+          attachConnection(HOST_ID, conn);
+          showLobbyScreen(lobbyCode);
+        }
+      });
+      conn.on('error', (err) => {
+        setError('joinError', 'Could not connect to lobby.');
+      });
     });
-    const data=await resp.json();
-    if(data.error){setError('joinError',data.error);return;}
-    lobbyCode=data.code;
-    myPlayerId=data.playerId;
-    isHost=false;
-    onlinePlayers=data.players;
-    connectWs(lobbyCode,myPlayerId);
-    showLobbyScreen(lobbyCode);
+    myPeer.on('error', (err) => {
+      setError('joinError', 'Peer connection failed.');
+    });
   }catch(e){
-    setError('joinError','Could not reach server.');
+    setError('joinError','Peer connection failed.');
   }
 }
 
@@ -1568,19 +1681,17 @@ async function doRenamePlayer(){
   status.classList.remove('err');
   status.textContent='Saving…';
   try{
-    const resp=await fetch(`/lobby/${lobbyCode}/rename`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({playerId:myPlayerId,name})
-    });
-    const data=await resp.json();
-    if(data.error){ status.textContent=data.error; status.classList.add('err'); return; }
-    onlinePlayers=data.players;
-    updateLobbyPlayerList();
+    if (isHost) {
+      onlinePlayers.find(p=>p.id===myPlayerId).name = name;
+      wsBroadcast({type: 'player_joined', players: onlinePlayers});
+      updateLobbyPlayerList();
+    } else {
+      dcSend(HOST_ID, {type: 'rename', name: name});
+    }
     status.textContent='Saved.';
     setTimeout(()=>{ if(status.textContent==='Saved.') status.textContent=''; },1400);
   }catch(e){
-    status.textContent='Could not reach server.'; status.classList.add('err');
+    status.textContent='Failed to rename.'; status.classList.add('err');
   }
 }
 
@@ -1599,22 +1710,23 @@ async function doCopyLobbyCode(){
 }
 
 function doLeaveLobby(){
-  try{ if(ws) ws.close(); }catch(e){}
-  ws=null;lobbyCode=null;onlinePlayers=[];isHost=false;myPlayerId=0;onlineMode=false;
+  rtcReset();
+  lobbyCode=null;onlinePlayers=[];isHost=false;myPlayerId=0;onlineMode=false;
   hideAllScreens();
   document.getElementById('onlineScreen').classList.remove('hidden');
   showOnlineError('');
 }
 
-function doStartOnlineGame(){
+async function doStartOnlineGame(){
   if(!isHost||onlinePlayers.length<2) return;
   onlineMode=true;
   const n=onlinePlayers.length;
   wsBroadcast({type:'game_start',n,players:onlinePlayers});
   hideAllScreens();
   setupOnlineGame(n,onlinePlayers);
-  document.getElementById('legend').innerHTML=`Online — ${onlinePlayers.map(p=>p.name).join(', ')} · Esc for rules`;
-  sleep(700).then(()=>gameLoop());
+  document.getElementById('legend').innerHTML=`Online — ${onlinePlayers.map(p=>p.name).join(', ')} · P2P · Esc for rules`;
+  await sleep(400);
+  gameLoop();
 }
 
 /* ============================================================
@@ -1741,6 +1853,7 @@ async function boot(){
     document.getElementById('endScreen').classList.add('hidden');
     document.getElementById('modeScreen').classList.remove('hidden');
     // Reset online state so new game is clean
+    rtcReset();
     onlineMode=false;isHost=false;myPlayerId=0;ws=null;lobbyCode=null;onlinePlayers=[];
   };
 }
