@@ -700,7 +700,8 @@ function actionPhrase(a){
 
 /* ---- CHALLENGE ---- */
 async function offerChallenge(claimant,char,eligible,desc){
-  const ordered=[...eligible].sort((a,b)=>(a.isLocal?-1:0)-(b.isLocal?-1:0));
+  // Claimant can never challenge their own claim
+  const ordered=[...eligible].filter(p=>p!==claimant).sort((a,b)=>(a.isLocal?-1:0)-(b.isLocal?-1:0));
   for(const p of ordered){
     if(!p.alive)continue;
     let wants;
@@ -933,7 +934,7 @@ function pickTarget(opps,type){
 function humanChallengePrompt(claimant,char,desc){
   hint('');
   return showPrompt(
-    `${claimant===players[0]?'You claim':'<b>'+claimant.name+'</b> claims'} <b>${char}</b>.<br><span style="font-size:16px;color:#b89b66">Do you call it a bluff?</span>`,
+    `<b>${claimant.name}</b> claims <b>${char}</b>.<br><span style="font-size:16px;color:#b89b66">Do you call it a bluff?</span>`,
     [{label:'Challenge!',sub:'risk an influence',cls:'danger',value:true},
      {label:'Allow it',sub:'let it pass',cls:'',value:false}]
   );
@@ -1378,19 +1379,24 @@ function connectWs(code,pid){
    LOBBY UI
    ============================================================ */
 function hideAllScreens(){
-  ['modeScreen','startScreen','onlineScreen','lobbyScreen','endScreen'].forEach(id=>{
+  ['modeScreen','startScreen','onlineScreen','createScreen','joinScreen','lobbyScreen','endScreen'].forEach(id=>{
     document.getElementById(id).classList.add('hidden');
   });
 }
 
-function showOnlineError(msg){
-  const el=document.getElementById('onlineError');
+function setError(id,msg){
+  const el=document.getElementById(id);
   if(el){el.textContent=msg;}
+}
+function showOnlineError(msg){
+  // Shared helper: route to whichever error slot exists on the visible screen
+  setError('createError',msg);
+  setError('joinError',msg);
 }
 
 async function doCreateLobby(){
-  const name=document.getElementById('playerNameInput').value.trim()||'Player 1';
-  showOnlineError('');
+  const name=document.getElementById('createNameInput').value.trim()||'Player 1';
+  setError('createError','');
   try{
     const resp=await fetch('/lobby/create',{
       method:'POST',
@@ -1405,15 +1411,15 @@ async function doCreateLobby(){
     connectWs(lobbyCode,myPlayerId);
     showLobbyScreen(lobbyCode);
   }catch(e){
-    showOnlineError('Could not reach server.');
+    setError('createError','Could not reach server.');
   }
 }
 
 async function doJoinLobby(){
   const code=document.getElementById('lobbyCodeInput').value.trim().toUpperCase();
-  const name=document.getElementById('playerNameInput').value.trim()||'Player';
-  showOnlineError('');
-  if(!code||code.length!==4){showOnlineError('Enter a 4-letter lobby code.');return;}
+  const name=document.getElementById('joinNameInput').value.trim()||'Player';
+  setError('joinError','');
+  if(!code||code.length!==4){setError('joinError','Enter a 4-letter lobby code.');return;}
   try{
     const resp=await fetch(`/lobby/join/${code}`,{
       method:'POST',
@@ -1421,7 +1427,7 @@ async function doJoinLobby(){
       body:JSON.stringify({name})
     });
     const data=await resp.json();
-    if(data.error){showOnlineError(data.error);return;}
+    if(data.error){setError('joinError',data.error);return;}
     lobbyCode=data.code;
     myPlayerId=data.playerId;
     isHost=false;
@@ -1429,9 +1435,13 @@ async function doJoinLobby(){
     connectWs(lobbyCode,myPlayerId);
     showLobbyScreen(lobbyCode);
   }catch(e){
-    showOnlineError('Could not reach server.');
+    setError('joinError','Could not reach server.');
   }
 }
+
+const LOBBY_MAX_PLAYERS=4;
+
+function myLobbyPlayer(){ return onlinePlayers.find(p=>p.id===myPlayerId); }
 
 function showLobbyScreen(code){
   hideAllScreens();
@@ -1441,27 +1451,106 @@ function showLobbyScreen(code){
   // Host sees start button; non-host doesn't
   const startBtn=document.getElementById('startOnlineBtn');
   if(isHost){startBtn.classList.remove('hidden');}else{startBtn.classList.add('hidden');}
+  // Seed the editable name input with my current name
+  const me=myLobbyPlayer();
+  const nameInput=document.getElementById('lobbyNameInput');
+  if(nameInput&&me) nameInput.value=me.name;
+  const nameStatus=document.getElementById('lobbyNameStatus');
+  if(nameStatus) nameStatus.textContent='';
   updateLobbyPlayerList();
 }
 
 function updateLobbyPlayerList(){
   const list=document.getElementById('lobbyPlayerList');
   list.innerHTML='';
-  onlinePlayers.forEach((p,i)=>{
+  const seats=LOBBY_MAX_PLAYERS;
+  for(let i=0;i<seats;i++){
+    const p=onlinePlayers[i];
     const el=document.createElement('div');
-    el.className='lobby-player'+(p.id===myPlayerId?' is-you':'');
-    el.textContent=`${p.name}${i===0?' (host)':''}${p.id===myPlayerId?' — you':''}`;
+    if(p){
+      el.className='lobby-player'+(p.id===myPlayerId?' is-you':'');
+      const tag=document.createElement('span');tag.className='lobby-player-tag';
+      tag.textContent=`Seat ${i+1}`;
+      const name=document.createElement('span');name.className='lobby-player-name';
+      name.textContent=p.name;
+      const meta=document.createElement('span');meta.className='lobby-player-meta';
+      const bits=[];
+      if(i===0) bits.push('host');
+      if(p.id===myPlayerId) bits.push('you');
+      meta.textContent=bits.length?bits.join(' · '):'';
+      el.appendChild(tag);el.appendChild(name);el.appendChild(meta);
+    }else{
+      el.className='lobby-player lobby-seat-empty';
+      const tag=document.createElement('span');tag.className='lobby-player-tag';
+      tag.textContent=`Seat ${i+1}`;
+      const name=document.createElement('span');name.className='lobby-player-name';
+      name.textContent='— empty —';
+      el.appendChild(tag);el.appendChild(name);
+    }
     list.appendChild(el);
-  });
+  }
+  const seatCount=document.getElementById('lobbySeatCount');
+  if(seatCount) seatCount.textContent=`${onlinePlayers.length} / ${seats}`;
   const status=document.getElementById('lobbyStatus');
   const startBtn=document.getElementById('startOnlineBtn');
   if(isHost){
     const ready=onlinePlayers.length>=2;
     startBtn.disabled=!ready;
-    status.textContent=ready?`${onlinePlayers.length} players ready — host can start.`:'Waiting for at least one more player…';
+    status.textContent=ready?`${onlinePlayers.length} nobles ready — you may begin the game.`:'Waiting for at least one more player…';
   }else{
-    status.textContent=`${onlinePlayers.length} player${onlinePlayers.length!==1?'s':''} in lobby — waiting for host to start.`;
+    status.textContent=`${onlinePlayers.length} noble${onlinePlayers.length!==1?'s':''} in lobby — waiting for host to start.`;
   }
+  // Refresh the local name input if my name changed remotely (after rename)
+  const me=myLobbyPlayer();
+  const nameInput=document.getElementById('lobbyNameInput');
+  if(nameInput&&me&&document.activeElement!==nameInput) nameInput.value=me.name;
+}
+
+async function doRenamePlayer(){
+  const input=document.getElementById('lobbyNameInput');
+  const status=document.getElementById('lobbyNameStatus');
+  if(!input||!lobbyCode) return;
+  const name=input.value.trim();
+  if(!name){ status.textContent='Name cannot be empty.'; status.classList.add('err'); return; }
+  status.classList.remove('err');
+  status.textContent='Saving…';
+  try{
+    const resp=await fetch(`/lobby/${lobbyCode}/rename`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({playerId:myPlayerId,name})
+    });
+    const data=await resp.json();
+    if(data.error){ status.textContent=data.error; status.classList.add('err'); return; }
+    onlinePlayers=data.players;
+    updateLobbyPlayerList();
+    status.textContent='Saved.';
+    setTimeout(()=>{ if(status.textContent==='Saved.') status.textContent=''; },1400);
+  }catch(e){
+    status.textContent='Could not reach server.'; status.classList.add('err');
+  }
+}
+
+async function doCopyLobbyCode(){
+  if(!lobbyCode) return;
+  const btn=document.getElementById('copyCodeBtn');
+  try{
+    await navigator.clipboard.writeText(lobbyCode);
+    if(btn){ const o=btn.textContent; btn.textContent='✓'; btn.classList.add('copied'); setTimeout(()=>{btn.textContent=o;btn.classList.remove('copied');},1200); }
+  }catch(e){
+    // Fallback: select the code
+    const display=document.getElementById('lobbyCodeDisplay');
+    const range=document.createRange();range.selectNodeContents(display);
+    const sel=getSelection();sel.removeAllRanges();sel.addRange(range);
+  }
+}
+
+function doLeaveLobby(){
+  try{ if(ws) ws.close(); }catch(e){}
+  ws=null;lobbyCode=null;onlinePlayers=[];isHost=false;myPlayerId=0;onlineMode=false;
+  hideAllScreens();
+  document.getElementById('onlineScreen').classList.remove('hidden');
+  showOnlineError('');
 }
 
 function doStartOnlineGame(){
@@ -1529,19 +1618,55 @@ async function boot(){
     document.getElementById('modeScreen').classList.remove('hidden');
   };
 
-  // Online screen
-  document.getElementById('createLobbyBtn').onclick=doCreateLobby;
-  document.getElementById('joinLobbyBtn').onclick=doJoinLobby;
-  document.getElementById('lobbyCodeInput').addEventListener('keydown',e=>{
-    if(e.key==='Enter') doJoinLobby();
-  });
+  // Online hub navigation
+  document.getElementById('goCreateBtn').onclick=()=>{
+    document.getElementById('onlineScreen').classList.add('hidden');
+    document.getElementById('createScreen').classList.remove('hidden');
+    setError('createError','');
+    document.getElementById('createNameInput').focus();
+  };
+  document.getElementById('goJoinBtn').onclick=()=>{
+    document.getElementById('onlineScreen').classList.add('hidden');
+    document.getElementById('joinScreen').classList.remove('hidden');
+    setError('joinError','');
+    document.getElementById('joinNameInput').focus();
+  };
   document.getElementById('backFromOnlineBtn').onclick=()=>{
     document.getElementById('onlineScreen').classList.add('hidden');
     document.getElementById('modeScreen').classList.remove('hidden');
   };
 
+  // Create screen
+  document.getElementById('createLobbyBtn').onclick=doCreateLobby;
+  document.getElementById('createNameInput').addEventListener('keydown',e=>{
+    if(e.key==='Enter') doCreateLobby();
+  });
+  document.getElementById('backFromCreateBtn').onclick=()=>{
+    document.getElementById('createScreen').classList.add('hidden');
+    document.getElementById('onlineScreen').classList.remove('hidden');
+  };
+
+  // Join screen
+  document.getElementById('joinLobbyBtn').onclick=doJoinLobby;
+  const codeInput=document.getElementById('lobbyCodeInput');
+  codeInput.addEventListener('input',()=>{ codeInput.value=codeInput.value.toUpperCase(); });
+  codeInput.addEventListener('keydown',e=>{ if(e.key==='Enter') doJoinLobby(); });
+  document.getElementById('joinNameInput').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){ document.getElementById('lobbyCodeInput').focus(); }
+  });
+  document.getElementById('backFromJoinBtn').onclick=()=>{
+    document.getElementById('joinScreen').classList.add('hidden');
+    document.getElementById('onlineScreen').classList.remove('hidden');
+  };
+
   // Lobby screen
   document.getElementById('startOnlineBtn').onclick=doStartOnlineGame;
+  document.getElementById('copyCodeBtn').onclick=doCopyLobbyCode;
+  document.getElementById('renameBtn').onclick=doRenamePlayer;
+  document.getElementById('leaveLobbyBtn').onclick=doLeaveLobby;
+  document.getElementById('lobbyNameInput').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){ e.preventDefault(); doRenamePlayer(); }
+  });
 
   // Rules overlay
   const rulesOverlay=document.getElementById('rulesOverlay');

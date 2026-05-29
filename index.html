@@ -57,30 +57,52 @@
     <button class="back-btn" id="backFromStartBtn">&#8592; Back</button>
   </div>
 
-  <!-- ONLINE LOBBY SETUP -->
+  <!-- ONLINE HUB -->
   <div class="screen hidden" id="onlineScreen">
     <div class="crest" style="font-size:62px;letter-spacing:14px;">ONLINE</div>
     <div class="tag">find your rivals</div>
     <div class="rule"></div>
-    <div class="ask">Your noble name</div>
-    <input id="playerNameInput" class="name-input" placeholder="Enter your name" maxlength="20" autocomplete="off" spellcheck="false">
-    <div class="rule" style="margin:22px 0 18px;"></div>
-    <div class="online-row">
-      <div class="online-panel">
-        <div class="panel-title">Create Lobby</div>
-        <div class="panel-sub">Get a code to share with friends</div>
-        <button class="startbtn" id="createLobbyBtn" style="margin-top:16px;font-size:14px;padding:12px 28px;">Create</button>
+    <div class="ask">Choose your path</div>
+    <div class="mode-row">
+      <div class="mode-btn" id="goCreateBtn">
+        <div class="mode-icon">&#9818;</div>
+        <div class="mode-title">Create Lobby</div>
+        <div class="mode-sub">host a new court</div>
       </div>
-      <div class="online-divider">or</div>
-      <div class="online-panel">
-        <div class="panel-title">Join Lobby</div>
-        <div class="panel-sub">Enter a 4-letter code</div>
-        <input id="lobbyCodeInput" class="code-input" placeholder="ABCD" maxlength="4" autocomplete="off" spellcheck="false">
-        <button class="startbtn" id="joinLobbyBtn" style="margin-top:12px;font-size:14px;padding:12px 28px;">Join</button>
+      <div class="mode-btn" id="goJoinBtn">
+        <div class="mode-icon">&#9822;</div>
+        <div class="mode-title">Join Lobby</div>
+        <div class="mode-sub">enter a 4-letter code</div>
       </div>
     </div>
-    <div id="onlineError" class="error-msg"></div>
     <button class="back-btn" id="backFromOnlineBtn">&#8592; Back</button>
+  </div>
+
+  <!-- CREATE LOBBY -->
+  <div class="screen hidden" id="createScreen">
+    <div class="crest" style="font-size:54px;letter-spacing:12px;">CREATE</div>
+    <div class="tag">host a new court</div>
+    <div class="rule"></div>
+    <div class="ask">Your noble name</div>
+    <input id="createNameInput" class="name-input" placeholder="Enter your name" maxlength="20" autocomplete="off" spellcheck="false">
+    <div class="form-hint">You'll receive a code to share with rivals.</div>
+    <button class="startbtn" id="createLobbyBtn" style="margin-top:22px;">Create Lobby</button>
+    <div id="createError" class="error-msg"></div>
+    <button class="back-btn" id="backFromCreateBtn">&#8592; Back</button>
+  </div>
+
+  <!-- JOIN LOBBY -->
+  <div class="screen hidden" id="joinScreen">
+    <div class="crest" style="font-size:54px;letter-spacing:12px;">JOIN</div>
+    <div class="tag">enter the court</div>
+    <div class="rule"></div>
+    <div class="ask">Your noble name</div>
+    <input id="joinNameInput" class="name-input" placeholder="Enter your name" maxlength="20" autocomplete="off" spellcheck="false">
+    <div class="ask" style="margin-top:22px;">Lobby code</div>
+    <input id="lobbyCodeInput" class="code-input" placeholder="ABCD" maxlength="4" autocomplete="off" spellcheck="false">
+    <button class="startbtn" id="joinLobbyBtn" style="margin-top:22px;">Join Lobby</button>
+    <div id="joinError" class="error-msg"></div>
+    <button class="back-btn" id="backFromJoinBtn">&#8592; Back</button>
   </div>
 
   <!-- LOBBY WAITING ROOM -->
@@ -89,11 +111,27 @@
     <div class="tag">awaiting the court</div>
     <div class="rule"></div>
     <div class="ask">Share this code with your rivals</div>
-    <div class="lobby-code-display" id="lobbyCodeDisplay">----</div>
-    <div class="rule" style="margin:18px 0;"></div>
+    <div class="lobby-code-row">
+      <div class="lobby-code-display" id="lobbyCodeDisplay">----</div>
+      <button id="copyCodeBtn" class="lobby-icon-btn" title="Copy code">⎘</button>
+    </div>
+    <div class="rule" style="margin:18px 0 14px;"></div>
+
+    <div class="lobby-name-row">
+      <label class="lobby-name-label" for="lobbyNameInput">Your noble name</label>
+      <div class="lobby-name-input-wrap">
+        <input id="lobbyNameInput" class="name-input lobby-name-input" placeholder="Enter your name" maxlength="20" autocomplete="off" spellcheck="false">
+        <button id="renameBtn" class="lobby-rename-btn">Save</button>
+      </div>
+      <div id="lobbyNameStatus" class="lobby-name-status"></div>
+    </div>
+
+    <div class="rule" style="margin:18px 0 14px;"></div>
+    <div class="lobby-seats-header"><span id="lobbySeatCount">0 / 4</span> nobles seated</div>
     <div id="lobbyPlayerList" class="lobby-player-list"></div>
     <div id="lobbyStatus" class="lobby-status">Waiting for players to join…</div>
     <button class="startbtn hidden" id="startOnlineBtn" style="margin-top:22px;" disabled>Begin the Game</button>
+    <button class="back-btn" id="leaveLobbyBtn">&#8592; Leave Lobby</button>
   </div>
 
   <!-- RULES OVERLAY -->

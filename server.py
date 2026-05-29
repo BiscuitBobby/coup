@@ -90,6 +90,11 @@ class JoinBody(BaseModel):
     name: str = ""
 
 
+class RenameBody(BaseModel):
+    playerId: int
+    name: str = ""
+
+
 @app.post("/lobby/create")
 async def create_lobby(body: CreateBody):
     name = body.name.strip()[:20] or "Player 1"
@@ -117,6 +122,27 @@ async def join_lobby(code: str, body: JoinBody):
     lobby["players"].append({"id": pid, "name": name})
     await manager.broadcast(code, {"type": "player_joined", "players": lobby["players"]})
     return {"playerId": pid, "players": lobby["players"], "code": code}
+
+
+@app.post("/lobby/{code}/rename")
+async def rename_player(code: str, body: RenameBody):
+    code = code.upper()
+    lobby = lobbies.get(code)
+    if not lobby:
+        return JSONResponse({"error": "Lobby not found"}, status_code=404)
+    if lobby["started"]:
+        return JSONResponse({"error": "Game already started"}, status_code=400)
+    name = body.name.strip()[:20]
+    if not name:
+        return JSONResponse({"error": "Name cannot be empty"}, status_code=400)
+    for p in lobby["players"]:
+        if p["id"] == body.playerId:
+            p["name"] = name
+            break
+    else:
+        return JSONResponse({"error": "Player not found"}, status_code=404)
+    await manager.broadcast(code, {"type": "player_joined", "players": lobby["players"]})
+    return {"players": lobby["players"]}
 
 
 @app.get("/lobby/{code}")
