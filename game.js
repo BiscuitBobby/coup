@@ -204,35 +204,39 @@ function buildTable(){
 }
 
 function buildCenterDeck(){
-  const stack = new THREE.Group();
-  stack.position.set(-1.05, 0, 0);
   const N = 14;
+  const geo = new THREE.BoxGeometry(CARD_W,CARD_H,CARD_D);
+  const mats = [
+    new THREE.MeshStandardMaterial({color:0x1a1020,roughness:0.6,metalness:0.3}),
+    new THREE.MeshStandardMaterial({color:0x1a1020,roughness:0.6,metalness:0.3}),
+    new THREE.MeshStandardMaterial({color:0x1a1020,roughness:0.6,metalness:0.3}),
+    new THREE.MeshStandardMaterial({color:0x1a1020,roughness:0.6,metalness:0.3}),
+    new THREE.MeshStandardMaterial({map:getCardBack(),roughness:0.5,metalness:0.15}),
+    new THREE.MeshStandardMaterial({map:getCardBack(),roughness:0.5,metalness:0.15}),
+  ];
+  const mesh = new THREE.InstancedMesh(geo, mats, N);
+  mesh.position.set(-1.05, 0, 0);
+  mesh.castShadow = true;
+
+  const dummy = new THREE.Object3D();
   for(let i=0;i<N;i++){
-    const m = new THREE.Mesh(
-      new THREE.BoxGeometry(CARD_W,CARD_H,CARD_D),
-      [
-        new THREE.MeshStandardMaterial({color:0x1a1020,roughness:0.6,metalness:0.3}),
-        new THREE.MeshStandardMaterial({color:0x1a1020,roughness:0.6,metalness:0.3}),
-        new THREE.MeshStandardMaterial({color:0x1a1020,roughness:0.6,metalness:0.3}),
-        new THREE.MeshStandardMaterial({color:0x1a1020,roughness:0.6,metalness:0.3}),
-        new THREE.MeshStandardMaterial({map:getCardBack(),roughness:0.5,metalness:0.15}),
-        new THREE.MeshStandardMaterial({map:getCardBack(),roughness:0.5,metalness:0.15}),
-      ]
-    );
-    m.rotation.x = FACE_DOWN;
-    m.position.y = CARD_D/2 + i*CARD_D*0.95;
-    m.position.x = (Math.random()-0.5)*0.025;
-    m.position.z = (Math.random()-0.5)*0.025;
-    m.rotation.y = (Math.random()-0.5)*0.04;
-    m.castShadow = true;
-    stack.add(m);
+    dummy.rotation.set(0, 0, 0);
+    dummy.position.set(0, 0, 0);
+    
+    dummy.rotation.x = FACE_DOWN;
+    dummy.position.y = CARD_D/2 + i*CARD_D*0.95;
+    dummy.position.x = (Math.random()-0.5)*0.025;
+    dummy.position.z = (Math.random()-0.5)*0.025;
+    dummy.rotation.y = (Math.random()-0.5)*0.04;
+    
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
   }
-  tableGroup.add(stack);
+  tableGroup.add(mesh);
 }
 
 function buildCenterTreasury(){
-  const pile = new THREE.Group();
-  pile.position.set(1.15, 0, 0);
+  makeCoin();
   const stacks = [
     {x:-0.25,z:-0.20,h:9},
     {x: 0.22,z:-0.18,h:7},
@@ -241,16 +245,22 @@ function buildCenterTreasury(){
     {x:-0.32,z: 0.05,h:6},
     {x: 0.05,z:-0.05,h:10},
   ];
+  const N = stacks.reduce((sum, s) => sum + s.h, 0);
+  const mesh = new THREE.InstancedMesh(coinGeo, coinMat, N);
+  mesh.position.set(1.15, 0, 0);
+  mesh.castShadow = true;
+
+  const dummy = new THREE.Object3D();
+  let idx = 0;
   for(const s of stacks){
     for(let i=0;i<s.h;i++){
-      const c = makeCoin();
-      c.position.set(s.x + (Math.random()-0.5)*0.015, 0.025 + i*0.05, s.z + (Math.random()-0.5)*0.015);
-      c.rotation.y = Math.random()*Math.PI*2;
-      c.castShadow = true;
-      pile.add(c);
+      dummy.position.set(s.x + (Math.random()-0.5)*0.015, 0.025 + i*0.05, s.z + (Math.random()-0.5)*0.015);
+      dummy.rotation.set(0, Math.random()*Math.PI*2, 0);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(idx++, dummy.matrix);
     }
   }
-  tableGroup.add(pile);
+  tableGroup.add(mesh);
 }
 
 function makeEmblemTexture(){
@@ -548,12 +558,19 @@ function updateCoins(p){
   const g=p.coinGroup;
   while(g.children.length) g.remove(g.children[0]);
   const show=Math.min(p.coins,12);
-  for(let i=0;i<show;i++){
-    const coin=makeCoin();
-    const stack=Math.floor(i/6);const idx=i%6;
-    coin.position.set(stack*0.46-0.23, 0.025+idx*0.05, 0);
-    coin.castShadow=true;
-    g.add(coin);
+  if(show>0){
+    makeCoin();
+    const mesh=new THREE.InstancedMesh(coinGeo,coinMat,show);
+    mesh.castShadow=true;
+    const dummy=new THREE.Object3D();
+    for(let i=0;i<show;i++){
+      const stack=Math.floor(i/6);const idx=i%6;
+      dummy.position.set(stack*0.46-0.23, 0.025+idx*0.05, 0);
+      dummy.rotation.set(0,0,0);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    }
+    g.add(mesh);
   }
   if(p.np){p.np.querySelector('.pcoins').textContent=p.coins;}
 }
