@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COUP — A Game of Deception</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="vignette"></div>
+  <div id="grain"></div>
+
+  <div id="brand"><div class="t">COUP</div><div class="s">~ a game of deception ~</div></div>
+
+  <div id="log"><h3>Chronicle</h3><div id="logbody"></div></div>
+
+  <div id="banner"></div>
+  <div id="prompt"><div class="pmsg"></div><div class="prow"></div></div>
+  <div id="actionbar"></div>
+  <div class="hintbar" id="hint"></div>
+  <div class="legend" id="legend"></div>
+
+  <!-- MODE SELECT -->
+  <div class="screen" id="modeScreen">
+    <div class="crest">COUP</div>
+    <div class="tag">deceive · deduce · dominate</div>
+    <div class="rule"></div>
+    <div class="ask">Choose your court</div>
+    <div class="mode-row">
+      <div class="mode-btn" id="practiceBtn">
+        <div class="mode-icon">&#9876;</div>
+        <div class="mode-title">Practice</div>
+        <div class="mode-sub">against the machine</div>
+      </div>
+      <div class="mode-btn" id="onlineBtn">
+        <div class="mode-icon">&#9900;</div>
+        <div class="mode-title">Online</div>
+        <div class="mode-sub">challenge real rivals</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRACTICE START -->
+  <div class="screen hidden" id="startScreen">
+    <div class="crest">COUP</div>
+    <div class="tag">deceive · deduce · dominate</div>
+    <div class="rule"></div>
+    <div class="ask">Choose the size of the court</div>
+    <div class="pcount" id="pcountOpts"></div>
+    <button class="startbtn" id="startBtn">Take Your Seat</button>
+    <div style="margin-top:20px;max-width:560px;font-size:17px;color:#8a7a9a;line-height:1.5;font-style:italic;">
+      Two cards of influence. A handful of coins. Claim any role you dare — truth is optional, but a caught lie costs an influence. Last noble standing rules.
+    </div>
+    <button class="back-btn" id="backFromStartBtn">&#8592; Back</button>
+  </div>
+
+  <!-- ONLINE LOBBY SETUP -->
+  <div class="screen hidden" id="onlineScreen">
+    <div class="crest" style="font-size:62px;letter-spacing:14px;">ONLINE</div>
+    <div class="tag">find your rivals</div>
+    <div class="rule"></div>
+    <div class="ask">Your noble name</div>
+    <input id="playerNameInput" class="name-input" placeholder="Enter your name" maxlength="20" autocomplete="off" spellcheck="false">
+    <div class="rule" style="margin:22px 0 18px;"></div>
+    <div class="online-row">
+      <div class="online-panel">
+        <div class="panel-title">Create Lobby</div>
+        <div class="panel-sub">Get a code to share with friends</div>
+        <button class="startbtn" id="createLobbyBtn" style="margin-top:16px;font-size:14px;padding:12px 28px;">Create</button>
+      </div>
+      <div class="online-divider">or</div>
+      <div class="online-panel">
+        <div class="panel-title">Join Lobby</div>
+        <div class="panel-sub">Enter a 4-letter code</div>
+        <input id="lobbyCodeInput" class="code-input" placeholder="ABCD" maxlength="4" autocomplete="off" spellcheck="false">
+        <button class="startbtn" id="joinLobbyBtn" style="margin-top:12px;font-size:14px;padding:12px 28px;">Join</button>
+      </div>
+    </div>
+    <div id="onlineError" class="error-msg"></div>
+    <button class="back-btn" id="backFromOnlineBtn">&#8592; Back</button>
+  </div>
+
+  <!-- LOBBY WAITING ROOM -->
+  <div class="screen hidden" id="lobbyScreen">
+    <div class="crest" style="font-size:58px;letter-spacing:12px;">LOBBY</div>
+    <div class="tag">awaiting the court</div>
+    <div class="rule"></div>
+    <div class="ask">Share this code with your rivals</div>
+    <div class="lobby-code-display" id="lobbyCodeDisplay">----</div>
+    <div class="rule" style="margin:18px 0;"></div>
+    <div id="lobbyPlayerList" class="lobby-player-list"></div>
+    <div id="lobbyStatus" class="lobby-status">Waiting for players to join…</div>
+    <button class="startbtn hidden" id="startOnlineBtn" style="margin-top:22px;" disabled>Begin the Game</button>
+  </div>
+
+  <!-- RULES OVERLAY -->
+  <div id="rulesOverlay" class="rules-overlay hidden">
+    <div class="rules-panel">
+      <div class="rules-title">THE RULES</div>
+      <button class="rules-close" id="rulesClose">✕</button>
+      <div class="rules-hint">Press <kbd>Esc</kbd> to close</div>
+
+      <div class="rules-section">
+        <div class="rules-sec-title">Objective</div>
+        <p>Be the last player with influence. Each player starts with 2 cards (kept secret) and a handful of coins.</p>
+      </div>
+
+      <div class="rules-section">
+        <div class="rules-sec-title">Basic Actions <span class="rules-note">(anyone can take these)</span></div>
+        <div class="rules-row"><span class="rules-action">Income</span><span class="rules-desc">Take 1 coin. Cannot be blocked or challenged.</span></div>
+        <div class="rules-row"><span class="rules-action">Foreign Aid</span><span class="rules-desc">Take 2 coins. Can be blocked by the <b>Duke</b>.</span></div>
+        <div class="rules-row"><span class="rules-action rules-danger">Coup</span><span class="rules-desc">Pay 7 coins — force any player to lose an influence. Unstoppable. <em>Mandatory at 10+ coins.</em></span></div>
+      </div>
+
+      <div class="rules-section">
+        <div class="rules-sec-title">Character Actions <span class="rules-note">(claim the card — or bluff)</span></div>
+        <div class="rules-char-grid">
+          <div class="rules-char duke">
+            <div class="char-name">Duke</div>
+            <div class="char-ability">Tax: take 3 coins</div>
+            <div class="char-block">Blocks Foreign Aid</div>
+          </div>
+          <div class="rules-char assassin">
+            <div class="char-name">Assassin</div>
+            <div class="char-ability">Pay 3 — force a loss of influence</div>
+            <div class="char-block">—</div>
+          </div>
+          <div class="rules-char captain">
+            <div class="char-name">Captain</div>
+            <div class="char-ability">Steal 2 coins from another player</div>
+            <div class="char-block">Blocks stealing</div>
+          </div>
+          <div class="rules-char ambassador">
+            <div class="char-name">Ambassador</div>
+            <div class="char-ability">Exchange cards with the court deck</div>
+            <div class="char-block">Blocks stealing</div>
+          </div>
+          <div class="rules-char contessa">
+            <div class="char-name">Contessa</div>
+            <div class="char-ability">—</div>
+            <div class="char-block">Blocks assassination</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rules-section">
+        <div class="rules-sec-title">Challenges &amp; Blocks</div>
+        <div class="rules-row"><span class="rules-action rules-gold">Challenge</span><span class="rules-desc">Call anyone's bluff. If they can't prove the card they claimed, they lose an influence — but if they can, <em>you</em> lose one instead, and they redraw.</span></div>
+        <div class="rules-row"><span class="rules-action rules-gold">Block</span><span class="rules-desc">Claim a blocking character to stop an action. The actor can challenge your block — same stakes apply.</span></div>
+      </div>
+
+      <div class="rules-section">
+        <div class="rules-sec-title">Losing Influence</div>
+        <p>When you lose influence you reveal one of your cards face-up permanently. Lose both and you're eliminated. 3 copies of each character exist in the deck.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- END -->
+  <div class="screen hidden" id="endScreen">
+    <div class="crest" id="endTitle">VICTORY</div>
+    <div class="rule"></div>
+    <div id="endmsg"></div>
+    <button class="startbtn" id="againBtn">Play Again</button>
+  </div>
+
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script type="module" src="game.js"></script>
+</body>
+</html>
