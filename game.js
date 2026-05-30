@@ -607,12 +607,16 @@ function refreshPlates() {
 
 const _v = new THREE.Vector3();
 function updatePlates() {
+  // When the action options are showing along the bottom edge, lift the local
+  // player's nameplate (and its coin count) above them so it isn't covered.
+  const lift = actionbar.childElementCount ? actionbar.offsetHeight + 14 : 0;
   players.forEach(p => {
     const s = p.seat;
     _v.set(s.x * 0.92, 0.2, s.z * 0.92 + (s.z > 0 ? 1.25 : -1.15));
     _v.project(camera);
     const sx = (_v.x * 0.5 + 0.5) * innerWidth;
-    const sy = (-_v.y * 0.5 + 0.5) * innerHeight;
+    let sy = (-_v.y * 0.5 + 0.5) * innerHeight;
+    if (p.isLocal && lift) sy -= lift;
     p.np.style.left = sx + 'px'; p.np.style.top = sy + 'px';
     p.np.style.opacity = (_v.z < 1) ? '1' : '0';
   });
