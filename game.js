@@ -787,6 +787,15 @@ async function resolveAction(actor, action) {
   log(`${nameTag(actor)} claims <b>${claim}</b> - ${actionPhrase(action)}.`);
   await sleep(350);
 
+  // Pay for the assassination at declaration (charged even if blocked or caught bluffing).
+  if (action.type === 'assassinate') {
+    if (actor.coins < 3) { log(`${nameTag(actor)} cannot afford the assassination - it fizzles.`); await sleep(300); return; }
+    actor.coins -= 3; updateCoins(actor);
+    log(`${nameTag(actor)} pays <b>3 coins</b> for the assassin.`);
+    if (onlineMode && isHost) broadcastState();
+    await sleep(300);
+  }
+
   const targetedAction = action.type === 'steal' || action.type === 'assassinate';
   const challengeEligible = targetedAction && t ? [t] : opponentsOf(actor);
   const challenger = await offerChallenge(actor, claim, challengeEligible, actionPhrase(action));
@@ -1063,7 +1072,7 @@ function humanChooseAction(p) {
     make('Foreign Aid', '+2 · Duke blocks', '', true, () => finish({ type: 'foreign_aid' }));
     make('Tax', 'Duke · +3 coins', 'gold', true, () => finish({ type: 'tax', character: 'Duke' }));
     make('Steal', 'Captain · take 2', '', opp.length > 0, () => needTarget('steal', 'Captain', t => finish({ type: 'steal', character: 'Captain', target: t })));
-    make('Assassinate', 'Assassin · pay 3', 'danger', p.coins >= 3 && opp.length > 0, () => needTarget('assassinate', 'Assassin', t => { p.coins -= 3; updateCoins(p); finish({ type: 'assassinate', character: 'Assassin', target: t }); }));
+    make('Assassinate', 'Assassin · pay 3', 'danger', p.coins >= 3 && opp.length > 0, () => needTarget('assassinate', 'Assassin', t => { finish({ type: 'assassinate', character: 'Assassin', target: t }); }));
     make('Exchange', 'Ambassador', '', true, () => finish({ type: 'exchange', character: 'Ambassador' }));
     make('Coup', 'pay 7', 'danger gold', p.coins >= 7 && opp.length > 0, () => needTarget('coup', null, t => finish({ type: 'coup', target: t })));
   });
@@ -1154,7 +1163,6 @@ function aiChooseAction(ai) {
   const assassinBluff = !canAssassinTruth && bluffOk('Assassin') && Math.random() < 0.25;
   if (ai.coins >= 3 && (canAssassinTruth || assassinBluff)) {
     const target = [...opp].sort((a, b) => hidden(a).length - hidden(b).length || b.coins - a.coins)[0];
-    ai.coins -= 3; updateCoins(ai);
     return { type: 'assassinate', character: 'Assassin', target };
   }
   if (has('Captain')) {
@@ -1317,7 +1325,6 @@ async function remoteChooseAction(p) {
   if (resp.character) action.character = resp.character;
   if (resp.targetId !== undefined && resp.targetId !== null) {
     action.target = playerByGid(resp.targetId);
-    if (resp.actionType === 'assassinate') { p.coins -= 3; updateCoins(p); }
   }
   return action;
 }
