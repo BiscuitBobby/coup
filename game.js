@@ -693,7 +693,12 @@ async function revealPermanent(card) {
   const owner = card.mesh.userData.owner;
   const deadCount = owner ? owner.cards.filter(c => c.revealed && c !== card).length : 0;
   const discardX = owner && !owner.isLocal ? 2.6 + deadCount * 0.9 : -2.6 - deadCount * 0.9;
-  await new Promise(res => gsap.to(card.mesh.position, { x: discardX, z: 0.6, y: CARD_D / 2, duration: 0.55, ease: 'power2.inOut', onComplete: res }));
+  // Each seat group is rotated to face the table centre, so local +z points
+  // toward centre for remote players and away from it for the (unrotated) local
+  // player. With 5-6 crowded seats, push revealed cards away from centre toward
+  // the owner's own edge so discard piles don't overlap neighbours.
+  const discardZ = players.length >= 5 ? (owner && owner.isLocal ? 1.5 : -1.5) : 0.6;
+  await new Promise(res => gsap.to(card.mesh.position, { x: discardX, z: discardZ, y: CARD_D / 2, duration: 0.55, ease: 'power2.inOut', onComplete: res }));
 }
 
 function pulseCoins(p) { gsap.fromTo(p.coinGroup.scale, { x: 1, y: 1, z: 1 }, { x: 1.15, y: 1.15, z: 1.15, duration: 0.18, yoyo: true, repeat: 1, ease: 'power2.out' }); }
