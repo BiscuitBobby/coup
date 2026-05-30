@@ -349,17 +349,21 @@ function getCardFace(charName) {
   const tex = new THREE.CanvasTexture(c); tex.anisotropy = 8; faceTexCache[charName] = tex; return tex;
 }
 
-function makeCardMesh(charName) {
+function makeCardMesh(charName, fullbright = false) {
   const edgeMat = new THREE.MeshStandardMaterial({ color: 0x1a1020, roughness: 0.6, metalness: 0.3 });
   const face = getCardFace(charName);
-  const frontMat = new THREE.MeshStandardMaterial({
-    map: face,
-    roughness: 0.38,
-    metalness: 0.0,
-    emissive: 0xffffff,
-    emissiveMap: face,
-    emissiveIntensity: 0.42,
-  });
+  // The local player's own cards use an unlit material so the table's moody
+  // spotlight/ambient never darkens them - they stay crisp and readable.
+  const frontMat = fullbright
+    ? new THREE.MeshBasicMaterial({ map: face })
+    : new THREE.MeshStandardMaterial({
+      map: face,
+      roughness: 0.38,
+      metalness: 0.0,
+      emissive: 0xffffff,
+      emissiveMap: face,
+      emissiveIntensity: 0.42,
+    });
   const backMat = new THREE.MeshStandardMaterial({ map: getCardBack(), roughness: 0.5, metalness: 0.15 });
   const mats = [edgeMat, edgeMat, edgeMat, edgeMat, frontMat, backMat];
   const m = new THREE.Mesh(new THREE.BoxGeometry(CARD_W, CARD_H, CARD_D), mats);
@@ -483,7 +487,7 @@ function setupGame(n) {
 
     for (let k = 0; k < 2; k++) {
       const ch = deck.pop();
-      const mesh = makeCardMesh(ch);
+      const mesh = makeCardMesh(ch, isHuman);
       mesh.position.set((k === 0 ? -0.72 : 0.72), CARD_D / 2, 0);
       mesh.rotation.x = FACE_DOWN;
       group.add(mesh);
@@ -538,7 +542,7 @@ function setupOnlineGame(n, playerInfos) {
 
     for (let k = 0; k < 2; k++) {
       const ch = deck.pop();
-      const mesh = makeCardMesh(ch);
+      const mesh = makeCardMesh(ch, isLocal);
       mesh.position.set((k === 0 ? -0.72 : 0.72), CARD_D / 2, 0);
       mesh.rotation.x = FACE_DOWN;
       group.add(mesh);
