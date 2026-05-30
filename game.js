@@ -484,7 +484,7 @@ function setupGame(n){
     if(isHuman){applyLocalCardPose(p);}
 
     p.coinGroup=new THREE.Group();
-    p.coinGroup.position.set(isHuman ? 1.8 : -1.8, 0, 0);
+    p.coinGroup.position.set(isHuman ? 2.4 : -1.8, 0, 0);
     p.group.add(p.coinGroup);
 
     const np=document.createElement('div');np.className='nameplate';
@@ -539,7 +539,7 @@ function setupOnlineGame(n, playerInfos){
     if(isLocal){applyLocalCardPose(p);}
 
     p.coinGroup=new THREE.Group();
-    p.coinGroup.position.set(isLocal?1.8:-1.8,0,0);
+    p.coinGroup.position.set(isLocal?2.4:-1.8,0,0);
     p.group.add(p.coinGroup);
 
     const np=document.createElement('div');np.className='nameplate';

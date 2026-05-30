@@ -195,6 +195,10 @@
   .hintbar.show{opacity:1;}
   .legend{position:fixed;bottom:16px;left:18px;z-index:9;font-family:'Cormorant Garamond',serif;
     font-size:13px;color:#6e5f7e;font-style:italic;pointer-events:none;}
+  .screen-desc{
+    margin-top:20px;max-width:560px;font-family:'Cormorant Garamond',serif;
+    font-size:17px;color:#8a7a9a;line-height:1.5;font-style:italic;
+  }
 
   /* ----- Rules Button ----- */
   .rules-btn{
@@ -333,63 +337,63 @@
   }
   .rules-overlay.hidden{opacity:0;pointer-events:none;}
   .rules-panel{
-    position:relative;max-width:720px;width:92vw;max-height:88vh;overflow-y:auto;
+    position:relative;max-width:800px;width:92vw;max-height:88vh;overflow-y:auto;
     background:linear-gradient(160deg,#1a0e2e,#0c0818);
     border:1px solid rgba(212,175,55,.45);border-radius:8px;
-    padding:36px 40px 32px;
+    padding:40px 48px 36px;
     box-shadow:0 28px 80px rgba(0,0,0,.8),0 0 60px rgba(212,175,55,.1);
     scrollbar-width:thin;scrollbar-color:var(--gold-deep) transparent;
   }
   .rules-panel::-webkit-scrollbar{width:5px;}
   .rules-panel::-webkit-scrollbar-thumb{background:var(--gold-deep);border-radius:3px;}
   .rules-title{
-    font-family:'Cinzel',serif;font-weight:900;font-size:28px;letter-spacing:8px;
-    color:var(--gold-bright);text-align:center;margin-bottom:4px;
+    font-family:'Cinzel',serif;font-weight:900;font-size:32px;letter-spacing:10px;
+    color:var(--gold-bright);text-align:center;margin-bottom:6px;
   }
   .rules-hint{
-    font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;
-    color:#6e5f7e;text-align:center;margin-bottom:24px;
+    font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;
+    color:#6e5f7e;text-align:center;margin-bottom:26px;
   }
   .rules-hint kbd{
-    font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;
+    font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;
     background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.3);
-    border-radius:3px;padding:1px 6px;color:var(--gold-bright);font-style:normal;
+    border-radius:3px;padding:2px 8px;color:var(--gold-bright);font-style:normal;
   }
   .rules-close{
-    position:absolute;top:16px;right:18px;
+    position:absolute;top:18px;right:20px;
     background:none;border:none;cursor:pointer;
-    font-size:18px;color:#6e5f7e;transition:color .2s;line-height:1;
+    font-size:22px;color:#6e5f7e;transition:color .2s;line-height:1;
   }
   .rules-close:hover{color:var(--parchment);}
-  .rules-section{margin-bottom:22px;}
+  .rules-section{margin-bottom:26px;}
   .rules-sec-title{
-    font-family:'Cinzel',serif;font-weight:700;font-size:13px;letter-spacing:3px;
-    color:var(--gold-bright);text-transform:uppercase;margin-bottom:10px;
-    padding-bottom:6px;border-bottom:1px solid rgba(212,175,55,.2);
+    font-family:'Cinzel',serif;font-weight:700;font-size:15px;letter-spacing:3px;
+    color:var(--gold-bright);text-transform:uppercase;margin-bottom:12px;
+    padding-bottom:8px;border-bottom:1px solid rgba(212,175,55,.2);
   }
   .rules-note{font-family:'Cormorant Garamond',serif;font-weight:400;font-style:italic;
-    font-size:13px;letter-spacing:.5px;color:#8a7a9a;text-transform:none;}
+    font-size:15px;letter-spacing:.5px;color:#8a7a9a;text-transform:none;}
   .rules-section p{
-    font-family:'Cormorant Garamond',serif;font-size:16px;color:#c8b890;line-height:1.55;
+    font-family:'Cormorant Garamond',serif;font-size:18px;color:#c8b890;line-height:1.6;
   }
   .rules-row{
-    display:flex;align-items:baseline;gap:14px;margin-bottom:8px;
+    display:flex;align-items:baseline;gap:16px;margin-bottom:10px;
   }
   .rules-action{
-    font-family:'Cinzel',serif;font-size:12px;font-weight:700;letter-spacing:1.5px;
-    color:var(--parchment);white-space:nowrap;min-width:100px;
+    font-family:'Cinzel',serif;font-size:14px;font-weight:700;letter-spacing:1.5px;
+    color:var(--parchment);white-space:nowrap;min-width:110px;
   }
   .rules-action.rules-danger{color:#ff7a8a;}
   .rules-action.rules-gold{color:var(--gold-bright);}
   .rules-desc{
-    font-family:'Cormorant Garamond',serif;font-size:16px;color:#c0aa80;line-height:1.4;
+    font-family:'Cormorant Garamond',serif;font-size:18px;color:#c0aa80;line-height:1.5;
   }
   .rules-desc b{color:var(--gold-bright);}
   .rules-desc em{color:#b89b66;}
   /* character grid */
-  .rules-char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+  .rules-char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
   .rules-char{
-    border-radius:5px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);
+    border-radius:5px;padding:12px 14px;border:1px solid rgba(255,255,255,.08);
   }
   .rules-char.duke{background:rgba(91,42,134,.25);border-color:rgba(176,123,224,.3);}
   .rules-char.assassin{background:rgba(34,34,40,.5);border-color:rgba(107,107,120,.3);}
@@ -397,14 +401,14 @@
   .rules-char.ambassador{background:rgba(29,107,74,.25);border-color:rgba(86,201,142,.3);}
   .rules-char.contessa{background:rgba(125,26,43,.25);border-color:rgba(221,90,114,.3);}
   .char-name{
-    font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:1.5px;
-    color:var(--parchment);margin-bottom:5px;
+    font-family:'Cinzel',serif;font-weight:700;font-size:13px;letter-spacing:1.5px;
+    color:var(--parchment);margin-bottom:6px;
   }
   .char-ability{
-    font-family:'Cormorant Garamond',serif;font-size:13px;color:#c0aa80;line-height:1.35;margin-bottom:4px;
+    font-family:'Cormorant Garamond',serif;font-size:15px;color:#c0aa80;line-height:1.4;margin-bottom:5px;
   }
   .char-block{
-    font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;color:#8a7a9a;
+    font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#8a7a9a;
   }
 
 /* ---------- Card zoom overlay ---------- */
@@ -431,3 +435,165 @@
 }
 @keyframes zoomFadeIn{from{opacity:0;}to{opacity:1;}}
 @keyframes zoomCardIn{from{opacity:0;transform:scale(.86);}to{opacity:1;transform:scale(1);}}
+
+/* ---------- Mobile Responsiveness ---------- */
+
+/* Touch-friendly: hide keyboard hint, show tap hint */
+.rules-hint .mobile-hint { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .rules-hint kbd { display: none; }
+  .rules-hint .mobile-hint { display: inline; }
+}
+
+@media (max-width: 768px) {
+  /* Title & Log */
+  #brand { top: 10px; left: 12px; }
+  #brand .t { font-size: 22px; letter-spacing: 6px; }
+  #brand .s { font-size: 12px; margin-top: 1px; letter-spacing: 2px; }
+  
+  #log { 
+    width: 200px; max-height: 30vh; 
+    top: 10px; right: 10px;
+  }
+  #log h3 { font-size: 12px; padding: 6px 0; letter-spacing: 2px; }
+  #logbody { padding: 6px 8px 8px; }
+  .logline { font-size: 13px; padding: 3px 0; line-height: 1.4; }
+  .logline .who { font-size: 12px; }
+  .logline.big { font-size: 14px; }
+
+  /* Nameplates */
+  .nameplate .pname { font-size: 12px; letter-spacing: 1px; }
+  .nameplate .pcoins { font-size: 12px; }
+  .nameplate .pcoins::before { width: 9px; height: 9px; }
+  .nameplate .ptag { font-size: 12px; }
+
+  /* Center Prompts & Banners */
+  #prompt { min-width: 88vw; padding: 18px 14px 16px; }
+  #prompt .pmsg { font-size: 16px; margin-bottom: 12px; line-height: 1.4; }
+  #prompt .prow { gap: 8px; }
+  
+  #banner .bt { font-size: 32px; letter-spacing: 4px; }
+  #banner .bs { font-size: 17px; }
+
+  /* Bottom Actions */
+  #actionbar { padding: 0 8px 10px; gap: 6px; justify-content: center; }
+  .btn { padding: 9px 10px 8px; min-width: 68px; font-size: 12px; letter-spacing: 1px; }
+  .btn .sub { font-size: 12px; margin-top: 2px; }
+  
+  .hintbar { bottom: 66px; font-size: 14px; width: 92vw; line-height: 1.4; }
+  .legend { font-size: 12px; bottom: 10px; left: 10px; }
+  .rules-btn { font-size: 12px; padding: 12px 6px 12px 8px; letter-spacing: 1px; }
+
+  /* Screens & Menus — scrollable on short viewports */
+  .screen { overflow-y: auto; padding: 20px 16px; }
+  .screen .crest { font-size: 42px !important; letter-spacing: 8px !important; margin-left: 8px !important; }
+  .screen .tag { font-size: 16px; letter-spacing: 2px; }
+  .screen .ask { font-size: 13px; letter-spacing: 2px; margin-bottom: 14px; }
+  #endmsg { font-size: 17px; padding: 0 16px; line-height: 1.5; }
+  .screen-desc { font-size: 15px; padding: 0 12px; max-width: 90vw; margin-top: 14px; line-height: 1.55; }
+  
+  .mode-row { flex-direction: column; gap: 12px; width: 85vw; max-width: 320px; }
+  .mode-btn { width: 100%; padding: 18px 14px 16px; }
+  .mode-icon { font-size: 28px; margin-bottom: 6px; }
+  .mode-title { font-size: 16px; }
+  .mode-sub { font-size: 14px; line-height: 1.4; }
+  
+  .pcount { gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .pcount .opt { width: 66px; height: 76px; }
+  .pcount .opt .n { font-size: 28px; }
+  .pcount .opt .l { font-size: 13px; }
+  
+  .name-input, .code-input { width: 80vw; max-width: 280px; font-size: 15px; padding: 11px 14px; }
+  .code-input { width: 50vw; max-width: 160px; }
+  .startbtn { padding: 12px 28px; font-size: 14px; letter-spacing: 2px; }
+  .form-hint { font-size: 14px; padding: 0 12px; line-height: 1.5; }
+  .back-btn { font-size: 14px; margin-top: 14px; }
+
+  /* Online panels */
+  .online-row { flex-direction: column; gap: 14px; }
+  .online-panel { min-width: unset; width: 85vw; max-width: 320px; }
+  .online-divider { padding: 4px 0; }
+
+  /* Lobby Specific */
+  .lobby-code-display { font-size: 34px; letter-spacing: 8px; margin-left: 8px; }
+  .lobby-code-row { justify-content: center; }
+  .lobby-name-input-wrap { flex-direction: column; gap: 8px; }
+  .lobby-name-input { width: 75vw; max-width: 260px; }
+  .lobby-name-label { font-size: 14px; }
+  .lobby-seats-header { font-size: 12px; letter-spacing: 2px; }
+  
+  .lobby-player-list { min-width: unset; width: 90vw; max-width: 340px; }
+  .lobby-player { grid-template-columns: 48px 1fr auto; padding: 10px 12px; gap: 8px; font-size: 13px; }
+  .lobby-player-tag { font-size: 12px; letter-spacing: 1px; }
+  .lobby-player-name { font-size: 13px; }
+  .lobby-player-meta { font-size: 12px; }
+  .lobby-status { font-size: 14px; }
+
+  /* Rules Overlay */
+  .rules-panel { padding: 24px 18px 20px; max-height: 85vh; width: 95vw; }
+  .rules-title { font-size: 20px; letter-spacing: 4px; }
+  .rules-hint { font-size: 13px; margin-bottom: 18px; }
+  .rules-close { font-size: 22px; top: 12px; right: 14px; padding: 6px; }
+  .rules-sec-title { font-size: 12px; letter-spacing: 2px; }
+  .rules-section p { font-size: 14px; line-height: 1.55; }
+  .rules-row { flex-direction: column; gap: 3px; margin-bottom: 10px; }
+  .rules-action { font-size: 13px; min-width: unset; }
+  .rules-desc { font-size: 14px; line-height: 1.5; }
+  
+  .rules-char-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .rules-char { padding: 8px 10px; }
+  .char-name { font-size: 12px; }
+  .char-ability { font-size: 13px; line-height: 1.4; }
+  .char-block { font-size: 12px; }
+
+  /* Card Zoom */
+  #cardZoom .zoom-card { max-width: 88vw; max-height: 65vh; border-radius: 12px; }
+  #cardZoom .zoom-hint { font-size: 14px; bottom: 20px; }
+}
+
+/* ---------- Small phones ---------- */
+@media (max-width: 420px) {
+  #brand .t { font-size: 18px; letter-spacing: 4px; }
+  #brand .s { font-size: 11px; letter-spacing: 1px; }
+
+  #log { width: 160px; max-height: 25vh; top: 8px; right: 8px; }
+  #log h3 { font-size: 11px; padding: 5px 0; letter-spacing: 1.5px; }
+  .logline { font-size: 12px; line-height: 1.4; }
+  .logline .who { font-size: 11px; }
+
+  .nameplate .pname { font-size: 11px; }
+  .nameplate .pcoins { font-size: 11px; }
+  .nameplate .ptag { font-size: 11px; }
+
+  #prompt .pmsg { font-size: 14px; line-height: 1.4; }
+  #prompt .prow { gap: 6px; }
+  .btn { padding: 8px 9px 7px; min-width: 60px; font-size: 11px; letter-spacing: 0.5px; }
+  .btn .sub { font-size: 11px; }
+
+  #banner .bt { font-size: 26px; letter-spacing: 3px; }
+  #banner .bs { font-size: 14px; }
+
+  .screen .crest { font-size: 32px !important; letter-spacing: 6px !important; }
+  .screen .tag { font-size: 14px; }
+  .screen .ask { font-size: 12px; }
+  .screen-desc { font-size: 13px; }
+
+  .mode-btn { padding: 14px 12px 12px; }
+  .mode-icon { font-size: 24px; }
+  .mode-title { font-size: 14px; letter-spacing: 1.5px; }
+  .mode-sub { font-size: 13px; }
+
+  .lobby-code-display { font-size: 28px; letter-spacing: 6px; }
+  .lobby-player { grid-template-columns: 40px 1fr auto; padding: 8px 10px; }
+  .lobby-player-tag { font-size: 11px; }
+
+  .rules-panel { padding: 20px 14px 16px; }
+  .rules-title { font-size: 18px; letter-spacing: 3px; }
+  .rules-sec-title { font-size: 11px; }
+  .rules-char-grid { grid-template-columns: 1fr; }
+  .char-name { font-size: 11px; }
+
+  .startbtn { padding: 10px 20px; font-size: 13px; }
+  .name-input { font-size: 14px; padding: 10px 12px; }
+  .legend { font-size: 11px; }
+}
