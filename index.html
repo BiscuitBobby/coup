@@ -1,24 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COUP — A Game of Deception</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COUP - A Game of Deception</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div id="vignette"></div>
   <div id="grain"></div>
 
-  <div id="brand"><div class="t">COUP</div><div class="s">~ a game of deception ~</div></div>
+  <div id="brand">
+    <div class="t">COUP</div>
+    <div class="s">~ a game of deception ~</div>
+  </div>
 
-  <div id="log"><h3>Chronicle</h3><div id="logbody"></div></div>
+  <div id="log">
+    <h3>Chronicle</h3>
+    <div id="logbody"></div>
+  </div>
 
   <div id="banner"></div>
-  <div id="prompt"><div class="pmsg"></div><div class="prow"></div></div>
+  <div id="prompt">
+    <div class="pmsg"></div>
+    <div class="prow"></div>
+  </div>
   <div id="actionbar"></div>
   <div class="hintbar" id="hint"></div>
   <div class="legend" id="legend"></div>
@@ -53,7 +66,8 @@
     <div class="pcount" id="pcountOpts"></div>
     <button class="startbtn" id="startBtn">Take Your Seat</button>
     <div class="screen-desc">
-      Two cards of influence. A handful of coins. Claim any role you dare — truth is optional, but a caught lie costs an influence. Last noble standing rules.
+      Two cards of influence. A handful of coins. Claim any role you dare - truth is optional, but a caught lie costs an
+      influence. Last noble standing rules.
     </div>
     <button class="back-btn" id="backFromStartBtn">&#8592; Back</button>
   </div>
@@ -85,7 +99,8 @@
     <div class="tag">host a new court</div>
     <div class="rule"></div>
     <div class="ask">Your noble name</div>
-    <input id="createNameInput" class="name-input" placeholder="Enter your name" maxlength="20" autocomplete="off" spellcheck="false">
+    <input id="createNameInput" class="name-input" placeholder="Enter your name" maxlength="20" autocomplete="off"
+      spellcheck="false">
     <div class="form-hint">You'll receive a code to share with rivals.</div>
     <button class="startbtn" id="createLobbyBtn" style="margin-top:22px;">Create Lobby</button>
     <div id="createError" class="error-msg"></div>
@@ -98,9 +113,11 @@
     <div class="tag">enter the court</div>
     <div class="rule"></div>
     <div class="ask">Your noble name</div>
-    <input id="joinNameInput" class="name-input" placeholder="Enter your name" maxlength="20" autocomplete="off" spellcheck="false">
+    <input id="joinNameInput" class="name-input" placeholder="Enter your name" maxlength="20" autocomplete="off"
+      spellcheck="false">
     <div class="ask" style="margin-top:22px;">Lobby code</div>
-    <input id="lobbyCodeInput" class="code-input" placeholder="ABCD" maxlength="4" autocomplete="off" spellcheck="false">
+    <input id="lobbyCodeInput" class="code-input" placeholder="ABCD" maxlength="4" autocomplete="off"
+      spellcheck="false">
     <button class="startbtn" id="joinLobbyBtn" style="margin-top:22px;">Join Lobby</button>
     <div id="joinError" class="error-msg"></div>
     <button class="back-btn" id="backFromJoinBtn">&#8592; Back</button>
@@ -121,7 +138,8 @@
     <div class="lobby-name-row">
       <label class="lobby-name-label" for="lobbyNameInput">Your noble name</label>
       <div class="lobby-name-input-wrap">
-        <input id="lobbyNameInput" class="name-input lobby-name-input" placeholder="Enter your name" maxlength="20" autocomplete="off" spellcheck="false">
+        <input id="lobbyNameInput" class="name-input lobby-name-input" placeholder="Enter your name" maxlength="20"
+          autocomplete="off" spellcheck="false">
         <button id="renameBtn" class="lobby-rename-btn">Save</button>
       </div>
       <div id="lobbyNameStatus" class="lobby-name-status"></div>
@@ -149,13 +167,16 @@
 
       <div class="rules-section">
         <div class="rules-sec-title">Basic Actions <span class="rules-note">(anyone can take these)</span></div>
-        <div class="rules-row"><span class="rules-action">Income</span><span class="rules-desc">Take 1 coin. Cannot be blocked or challenged.</span></div>
-        <div class="rules-row"><span class="rules-action">Foreign Aid</span><span class="rules-desc">Take 2 coins. Can be blocked by the <b>Duke</b>.</span></div>
-        <div class="rules-row"><span class="rules-action rules-danger">Coup</span><span class="rules-desc">Pay 7 coins — force any player to lose an influence. Unstoppable. <em>Mandatory at 10+ coins.</em></span></div>
+        <div class="rules-row"><span class="rules-action">Income</span><span class="rules-desc">Take 1 coin. Cannot be
+            blocked or challenged.</span></div>
+        <div class="rules-row"><span class="rules-action">Foreign Aid</span><span class="rules-desc">Take 2 coins. Can
+            be blocked by the <b>Duke</b>.</span></div>
+        <div class="rules-row"><span class="rules-action rules-danger">Coup</span><span class="rules-desc">Pay 7 coins -
+            force any player to lose an influence. Unstoppable. <em>Mandatory at 10+ coins.</em></span></div>
       </div>
 
       <div class="rules-section">
-        <div class="rules-sec-title">Character Actions <span class="rules-note">(claim the card — or bluff)</span></div>
+        <div class="rules-sec-title">Character Actions <span class="rules-note">(claim the card - or bluff)</span></div>
         <div class="rules-char-grid">
           <div class="rules-char duke">
             <div class="char-name">Duke</div>
@@ -164,8 +185,8 @@
           </div>
           <div class="rules-char assassin">
             <div class="char-name">Assassin</div>
-            <div class="char-ability">Pay 3 — force a loss of influence</div>
-            <div class="char-block">—</div>
+            <div class="char-ability">Pay 3 - force a loss of influence</div>
+            <div class="char-block">-</div>
           </div>
           <div class="rules-char captain">
             <div class="char-name">Captain</div>
@@ -179,7 +200,7 @@
           </div>
           <div class="rules-char contessa">
             <div class="char-name">Contessa</div>
-            <div class="char-ability">—</div>
+            <div class="char-ability">-</div>
             <div class="char-block">Blocks assassination</div>
           </div>
         </div>
@@ -187,13 +208,17 @@
 
       <div class="rules-section">
         <div class="rules-sec-title">Challenges &amp; Blocks</div>
-        <div class="rules-row"><span class="rules-action rules-gold">Challenge</span><span class="rules-desc">Call anyone's bluff. If they can't prove the card they claimed, they lose an influence — but if they can, <em>you</em> lose one instead, and they redraw.</span></div>
-        <div class="rules-row"><span class="rules-action rules-gold">Block</span><span class="rules-desc">Claim a blocking character to stop an action. The actor can challenge your block — same stakes apply.</span></div>
+        <div class="rules-row"><span class="rules-action rules-gold">Challenge</span><span class="rules-desc">Call
+            anyone's bluff. If they can't prove the card they claimed, they lose an influence - but if they can,
+            <em>you</em> lose one instead, and they redraw.</span></div>
+        <div class="rules-row"><span class="rules-action rules-gold">Block</span><span class="rules-desc">Claim a
+            blocking character to stop an action. The actor can challenge your block - same stakes apply.</span></div>
       </div>
 
       <div class="rules-section">
         <div class="rules-sec-title">Losing Influence</div>
-        <p>When you lose influence you reveal one of your cards face-up permanently. Lose both and you're eliminated. 3 copies of each character exist in the deck.</p>
+        <p>When you lose influence you reveal one of your cards face-up permanently. Lose both and you're eliminated. 3
+          copies of each character exist in the deck.</p>
       </div>
     </div>
   </div>
@@ -212,11 +237,12 @@
     <button class="startbtn" id="againBtn">Play Again</button>
   </div>
 
-<script type="importmap">
+  <script type="importmap">
 { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-<script type="module" src="game.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script type="module" src="game.js"></script>
 </body>
+
 </html>

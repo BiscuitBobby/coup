@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import uvicorn
 
-app = FastAPI(title="COUP — A Game of Deception")
+app = FastAPI(title="COUP - A Game of Deception")
 BASE_DIR = Path(__file__).parent
 
 NO_CACHE = {
