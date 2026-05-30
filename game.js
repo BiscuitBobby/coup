@@ -697,7 +697,7 @@ async function revealPermanent(card) {
   // toward centre for remote players and away from it for the (unrotated) local
   // player. With 5-6 crowded seats, push revealed cards away from centre toward
   // the owner's own edge so discard piles don't overlap neighbours.
-  const discardZ = players.length >= 5 ? (owner && owner.isLocal ? 1.5 : -1.5) : 0.6;
+  const discardZ = players.length >= 5 ? (owner && owner.isLocal ? 1.5 : -1.25) : 0.6;
   await new Promise(res => gsap.to(card.mesh.position, { x: discardX, z: discardZ, y: CARD_D / 2, duration: 0.55, ease: 'power2.inOut', onComplete: res }));
 }
 
@@ -909,11 +909,9 @@ async function offerBlock(actor, action, kind, blockChars, onlyTarget) {
 async function resolveBlock(blocker, claim, actor, action) {
   log(`${nameTag(blocker)} blocks with <b>${claim}</b>.`);
   await sleep(300);
-  const eligible = players.filter(p => p.alive && p !== blocker);
-  eligible.sort((a, b) => {
-    if (a === actor) return -1; if (b === actor) return 1;
-    return (a.isLocal ? -1 : 0) - (b.isLocal ? -1 : 0);
-  });
+  // A block is a claim aimed squarely at the player who was blocked, so only
+  // that actor may challenge it (not the rest of the table).
+  const eligible = actor.alive && actor !== blocker ? [actor] : [];
   let challenger = null;
   for (const p of eligible) {
     let wants;
