@@ -772,7 +772,9 @@ async function resolveAction(actor,action){
   log(`${nameTag(actor)} claims <b>${claim}</b> — ${actionPhrase(action)}.`);
   await sleep(350);
 
-  const challenger=await offerChallenge(actor,claim,opponentsOf(actor),`${actor.name}'s ${claim}`);
+  const targetedAction=action.type==='steal'||action.type==='assassinate';
+  const challengeEligible=targetedAction&&t ? [t] : opponentsOf(actor);
+  const challenger=await offerChallenge(actor,claim,challengeEligible,`${actor.name}'s ${claim}`);
   if(challenger){
     const truthful=await resolveChallenge(actor,claim,challenger);
     if(!truthful){
@@ -1585,10 +1587,14 @@ async function doCreateLobby(){
 }
 
 async function doJoinLobby(){
+  const joinBtn=document.getElementById('joinLobbyBtn');
+  if(joinBtn.disabled) return;
   const code=document.getElementById('lobbyCodeInput').value.trim().toUpperCase();
   const name=document.getElementById('joinNameInput').value.trim()||'Player';
   setError('joinError','');
   if(!code||code.length!==4){setError('joinError','Enter a 4-letter lobby code.');return;}
+  joinBtn.disabled=true;
+  setTimeout(()=>{ joinBtn.disabled=false; },3000);
   try{
     lobbyCode = code;
     isHost = false;
@@ -1612,13 +1618,16 @@ async function doJoinLobby(){
       });
       conn.on('error', (err) => {
         setError('joinError', 'Could not connect to lobby.');
+        joinBtn.disabled=false;
       });
     });
     myPeer.on('error', (err) => {
       setError('joinError', 'Peer connection failed.');
+      joinBtn.disabled=false;
     });
   }catch(e){
     setError('joinError','Peer connection failed.');
+    joinBtn.disabled=false;
   }
 }
 
